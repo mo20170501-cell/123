@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お誕生日おめでとう✨</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at top, #1b2450 0%, #0c1130 55%, #060814 100%);
+    font-family: "Hiragino Maru Gothic Pro", "Yu Gothic", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 46px 16px 60px;
+    position: relative;
+  }
+
+  .stars span {
+    position: fixed;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: twinkle 2.6s infinite ease-in-out;
+    z-index: 0;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.9; }
+  }
+
+  h1 {
+    position: relative;
+    z-index: 3;
+    color: #ffe9b8;
+    font-size: clamp(22px, 6.5vw, 34px);
+    text-align: center;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 18px rgba(255, 214, 130, 0.4);
+  }
+  .sub {
+    position: relative;
+    z-index: 3;
+    color: #b9c2e8;
+    font-size: 13px;
+    margin-top: 8px;
+    margin-bottom: 34px;
+    opacity: 0.85;
+    text-align: center;
+  }
+
+  .card-wrap {
+    position: relative;
+    z-index: 3;
+    width: min(340px, 86vw);
+    height: 220px;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+  }
+
+  .card-under {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, #2b1a4a, #4a2a63 60%, #6f2f57);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    color: #fff2df;
+  }
+  .card-under .icon {
+    font-size: 34px;
+    margin-bottom: 10px;
+  }
+  .card-under .msg {
+    font-size: 16px;
+    line-height: 1.9;
+  }
+
+  canvas#scratch {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  .scratch-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #5b3d17;
+    font-weight: bold;
+    font-size: 15px;
+    z-index: 1;
+    pointer-events: none;
+    gap: 6px;
+  }
+  .scratch-label span.small {
+    font-size: 12px;
+    font-weight: normal;
+    opacity: 0.75;
+  }
+
+  #fw {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  footer {
+    position: relative;
+    z-index: 3;
+    margin-top: 34px;
+    color: rgba(185,194,232,0.5);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<canvas id="fw"></canvas>
+
+<h1>🎉 お誕生日おめでとう 🎉</h1>
+<div class="sub">指でこすってメッセージを開けてね</div>
+
+<div class="card-wrap">
+  <div class="card-under">
+    <div class="icon">🎂</div>
+    <div class="msg">
+      今日という特別な日をお祝いします<br>
+      笑顔と素敵な1日に感謝いたします
+    </div>
+  </div>
+  <div class="scratch-label">
+    ✨ Scratch Me ✨
+    <span class="small">指でこすってね</span>
+  </div>
+  <canvas id="scratch"></canvas>
+</div>
+
+<footer>scratch to reveal ✦ made with ❤️</footer>
+
+<script>
+  /* ===== 星の背景 ===== */
+  const starsContainer = document.getElementById('stars');
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('span');
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.top = Math.random() * 100 + 'vh';
+    s.style.animationDelay = (Math.random() * 2.6) + 's';
+    starsContainer.appendChild(s);
+  }
+
+  /* ===== 花火 canvas ===== */
+  const fw = document.getElementById('fw');
+  const fctx = fw.getContext('2d');
+  function resizeFw() {
+    fw.width = window.innerWidth;
+    fw.height = window.innerHeight;
+  }
+  resizeFw();
+  window.addEventListener('resize', resizeFw);
+
+  const palette = ['#ffd166', '#ff6fa5', '#6fd3ff', '#a06fff', '#7CFFB2'];
+  let particles = [];
+  function launchFirework(x, y) {
+    const color = palette[Math.floor(Math.random() * palette.length)];
+    const count = 32;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count;
+      const speed = 2 + Math.random() * 2.5;
+      particles.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 60 + Math.random()*20, color });
+    }
+  }
+  function animateFw() {
+    fctx.clearRect(0, 0, fw.width, fw.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.life -= 1;
+      fctx.globalAlpha = Math.max(p.life / 80, 0);
+      fctx.fillStyle = p.color;
+      fctx.beginPath();
+      fctx.arc(p.x, p.y, 2.4, 0, Math.PI*2);
+      fctx.fill();
+    });
+    fctx.globalAlpha = 1;
+    particles = particles.filter(p => p.life > 0);
+    requestAnimationFrame(animateFw);
+  }
+  animateFw();
+  function fireworkShow() {
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        const x = window.innerWidth * (0.15 + Math.random()*0.7);
+        const y = window.innerHeight * (0.12 + Math.random()*0.35);
+        launchFirework(x, y);
+      }, i * 260);
+    }
+  }
+
+  /* ===== ハッピーバースデーのメロディ ===== */
+  const noteFreqs = { G4:392.00, A4:440.00, B4:493.88, C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99 };
+  const melody = [
+    ['G4',0.5],['G4',0.5],['A4',1],['G4',1],['C5',1],['B4',2],
+    ['G4',0.5],['G4',0.5],['A4',1],['G4',1],['D5',1],['C5',2],
+    ['G4',0.5],['G4',0.5],['G5',1],['E5',1],['C5',1],['B4',1],['A4',2],
+    ['F5',0.5],['F5',0.5],['E5',1],['C5',1],['D5',1],['C5',2]
+  ];
+  let audioCtx = null;
+  function playNote(freq, startTime, duration) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+    gain.gain.linearRampToValueAtTime(0.0001, startTime + duration*0.9);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(startTime); osc.stop(startTime + duration);
+  }
+  function playMelody() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const unit = 0.38;
+    let t = audioCtx.currentTime + 0.05;
+    melody.forEach(([note, beats]) => {
+      const dur = beats * unit;
+      playNote(noteFreqs[note], t, dur*0.85);
+      t += dur;
+    });
+  }
+
+  /* ===== スクラッチカード ===== */
+  const scratchCanvas = document.getElementById('scratch');
+  const sctx = scratchCanvas.getContext('2d');
+  const wrap = document.querySelector('.card-wrap');
+  let W, H;
+
+  function sizeCanvas() {
+    W = wrap.clientWidth;
+    H = wrap.clientHeight;
+    scratchCanvas.width = W;
+    scratchCanvas.height = H;
+    drawFoil();
+  }
+
+  function drawFoil() {
+    const grad = sctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, '#f7d68a');
+    grad.addColorStop(0.5, '#ffe9b8');
+    grad.addColorStop(1, '#e8b968');
+    sctx.globalCompositeOperation = 'source-over';
+    sctx.fillStyle = grad;
+    sctx.fillRect(0, 0, W, H);
+    // 軽いテクスチャ
+    sctx.globalAlpha = 0.08;
+    sctx.strokeStyle = '#5b3d17';
+    for (let i = 0; i < 40; i++) {
+      sctx.beginPath();
+      sctx.moveTo(Math.random()*W, Math.random()*H);
+      sctx.lineTo(Math.random()*W, Math.random()*H);
+      sctx.stroke();
+    }
+    sctx.globalAlpha = 1;
+  }
+
+  window.addEventListener('resize', sizeCanvas);
+  sizeCanvas();
+
+  let isDown = false;
+  let revealed = false;
+  let lastCheck = 0;
+
+  function getPos(e) {
+    const rect = scratchCanvas.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+  }
+
+  function scratchAt(x, y) {
+    sctx.globalCompositeOperation = 'destination-out';
+    sctx.beginPath();
+    sctx.arc(x, y, 24, 0, Math.PI * 2);
+    sctx.fill();
+  }
+
+  function checkProgress() {
+    if (revealed) return;
+    const now = Date.now();
+    if (now - lastCheck < 300) return;
+    lastCheck = now;
+    const data = sctx.getImageData(0, 0, W, H).data;
+    let cleared = 0;
+    const total = W * H;
+    const step = 40; // サンプリング間隔（軽量化）
+    let sampled = 0;
+    for (let i = 3; i < data.length; i += 4 * step) {
+      sampled++;
+      if (data[i] < 40) cleared++;
+    }
+    const ratio = cleared / sampled;
+    if (ratio > 0.55) {
+      revealClear();
+    }
+  }
+
+  function revealClear() {
+    revealed = true;
+    scratchCanvas.style.transition = 'opacity 0.6s ease';
+    scratchCanvas.style.opacity = '0';
+    setTimeout(() => { scratchCanvas.style.display = 'none'; }, 650);
+    fireworkShow();
+    playMelody();
+  }
+
+  function handleMove(e) {
+    if (!isDown || revealed) return;
+    e.preventDefault();
+    const { x, y } = getPos(e);
+    scratchAt(x, y);
+    checkProgress();
+  }
+
+  scratchCanvas.addEventListener('mousedown', (e) => { isDown = true; handleMove(e); });
+  window.addEventListener('mouseup', () => isDown = false);
+  scratchCanvas.addEventListener('mousemove', handleMove);
+
+  scratchCanvas.addEventListener('touchstart', (e) => { isDown = true; handleMove(e); }, { passive: false });
+  window.addEventListener('touchend', () => isDown = false);
+  scratchCanvas.addEventListener('touchmove', handleMove, { passive: false });
+</script>
+
+</body>
+</html>
